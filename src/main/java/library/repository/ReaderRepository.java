@@ -47,10 +47,13 @@ public class ReaderRepository {
             List<String> lines = readers.stream()
                     .map(reader -> String.join(",",
                             String.valueOf(reader.getId()),
-                            reader.getUsername(),
+                            reader.getAccount(),
                             reader.getPassword(),
                             reader.getName(),
-                            reader.getBorrowedBookIds().stream().map(String::valueOf).collect(Collectors.joining("|"))))
+                            reader.getBorrowedBookIds().stream().map(String::valueOf).collect(Collectors.joining("|")),
+                            String.valueOf(reader.getBorrowMax()),
+                            String.valueOf(reader.getBalance()),
+                            String.valueOf(reader.isVip())))
                     .toList();
             Files.write(filePath, lines, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -71,7 +74,10 @@ public class ReaderRepository {
                         .map(Integer::parseInt)
                         .collect(Collectors.toList());
             }
-            return new Reader(Integer.parseInt(parts[0]), parts[1], parts[2], parts[3], borrowedIds);
+            int borrowMax = parts.length >= 6 ? Integer.parseInt(parts[5]) : 5;
+            double balance = parts.length >= 7 ? Double.parseDouble(parts[6]) : 0;
+            boolean vip = parts.length >= 8 && Boolean.parseBoolean(parts[7]);
+            return new Reader(Integer.parseInt(parts[0]), parts[1], parts[2], parts[3], borrowedIds, borrowMax, balance, vip);
         } catch (NumberFormatException e) {
             System.out.println("跳过格式错误的读者记录: " + line);
             return null;

@@ -1,31 +1,33 @@
 package library.app;
 
+import library.app.ui.SwingConsole;
+import library.app.ui.UserInterface;
 import library.model.Admin;
 import library.model.Book;
 import library.model.Reader;
 import library.service.Library;
 
 import java.util.List;
-import java.util.Scanner;
 
 public class LibraryApp {
     private final Library library;
-    private final Scanner scanner;
+    private final UserInterface ui;
 
-    public LibraryApp() {
+    public LibraryApp(UserInterface ui) {
+        this.ui = ui;
         library = new Library();
-        scanner = new Scanner(System.in);
     }
 
     public static void main(String[] args) {
-        new LibraryApp().run();
+        SwingConsole console = new SwingConsole();
+        new Thread(() -> new LibraryApp(console).run()).start();
     }
 
     private void run() {
         boolean running = true;
         while (running) {
             printMainMenu();
-            String choice = scanner.nextLine();
+            String choice = ui.readLine("");
             switch (choice) {
                 case "1" -> readerLogin();
                 case "2" -> adminLogin();
@@ -40,61 +42,58 @@ public class LibraryApp {
     }
 
     private void printMainMenu() {
-        System.out.println("====== 图书借阅管理系统 ======");
-        System.out.println("1. 读者登录");
-        System.out.println("2. 管理员登录");
-        System.out.println("0. 退出系统");
-        System.out.print("请输入你的选择：");
+        ui.println("====== 图书借阅管理系统 ======");
+        ui.println("1. 读者登录");
+        ui.println("2. 管理员登录");
+        ui.println("0. 退出系统");
+        ui.print("请输入你的选择：");
     }
 
     private void readerLogin() {
-        System.out.print("请输入读者登录名：");
-        String username = scanner.nextLine();
-        System.out.print("请输入密码：");
-        String password = scanner.nextLine();
+        String username = ui.readLine("请输入读者登录名：");
+        String password = ui.readLine("请输入密码：");
         Reader reader = library.loginReader(username, password);
         if (reader != null) {
-            System.out.println("欢迎你，" + reader.getName() + "！");
+            ui.println("欢迎你，" + reader.getName() + "！");
             readerMenu(reader);
         } else {
-            System.out.println("用户名或密码错误。");
+            ui.println("用户名或密码错误。");
         }
     }
 
     private void adminLogin() {
-        System.out.print("请输入管理员登录名：");
-        String username = scanner.nextLine();
-        System.out.print("请输入密码：");
-        String password = scanner.nextLine();
+        String username = ui.readLine("请输入管理员登录名：");
+        String password = ui.readLine("请输入密码：");
         Admin admin = library.loginAdmin(username, password);
         if (admin != null) {
-            System.out.println("欢迎你，" + admin.getName() + "！");
+            ui.println("欢迎你，" + admin.getName() + "！");
             adminMenu();
         } else {
-            System.out.println("用户名或密码错误。");
+            ui.println("用户名或密码错误。");
         }
     }
 
     private void readerMenu(Reader reader) {
         boolean loggedIn = true;
         while (loggedIn) {
-            System.out.println("====== 读者菜单 ======");
-            System.out.println("1. 查看所有图书");
-            System.out.println("2. 检索图书（按书名关键字）");
-            System.out.println("3. 借书");
-            System.out.println("4. 还书");
-            System.out.println("5. 查看已借图书");
-            System.out.println("0. 退出登录");
-            System.out.print("请输入你的选择：");
-            String choice = scanner.nextLine();
+            ui.println("====== 读者菜单 ======");
+            ui.println("1. 查看所有图书");
+            ui.println("2. 检索图书（按书名关键字）");
+            ui.println("3. 借书");
+            ui.println("4. 还书");
+            ui.println("5. 查看已借图书");
+            ui.println("6. 充值/购买VIP");
+            ui.println("0. 退出登录");
+            String choice = ui.readLine("请输入你的选择：");
             switch (choice) {
                 case "1" -> printBooks(library.listAllBooks());
                 case "2" -> searchBooks();
                 case "3" -> borrowBook(reader);
                 case "4" -> returnBook(reader);
                 case "5" -> printBooks(library.listBorrowedBooks(reader));
+                case "6" -> readerRecharge(reader);
                 case "0" -> loggedIn = false;
-                default -> System.out.println("无效选择，请重新输入。");
+                default -> ui.println("无效选择，请重新输入。");
             }
         }
     }
@@ -102,17 +101,16 @@ public class LibraryApp {
     private void adminMenu() {
         boolean loggedIn = true;
         while (loggedIn) {
-            System.out.println("====== 管理员菜单 ======");
-            System.out.println("1. 查看所有图书");
-            System.out.println("2. 新增图书");
-            System.out.println("3. 删除图书");
-            System.out.println("4. 修改图书");
-            System.out.println("5. 检索图书（按书名关键字）");
-            System.out.println("6. 按编号排序");
-            System.out.println("7. 按书名排序");
-            System.out.println("0. 退出登录");
-            System.out.print("请输入你的选择：");
-            String choice = scanner.nextLine();
+            ui.println("====== 管理员菜单 ======");
+            ui.println("1. 查看所有图书");
+            ui.println("2. 新增图书");
+            ui.println("3. 删除图书");
+            ui.println("4. 修改图书");
+            ui.println("5. 检索图书（按书名关键字）");
+            ui.println("6. 按编号排序");
+            ui.println("7. 按书名排序");
+            ui.println("0. 退出登录");
+            String choice = ui.readLine("请输入你的选择：");
             switch (choice) {
                 case "1" -> printBooks(library.listAllBooks());
                 case "2" -> addBook();
@@ -122,115 +120,114 @@ public class LibraryApp {
                 case "6" -> printBooks(library.sortBooksById());
                 case "7" -> printBooks(library.sortBooksByTitle());
                 case "0" -> loggedIn = false;
-                default -> System.out.println("无效选择，请重新输入。");
+                default -> ui.println("无效选择，请重新输入。");
             }
         }
     }
 
     private void printBooks(List<Book> books) {
         if (books.isEmpty()) {
-            System.out.println("没有找到图书。");
+            ui.println("没有找到图书。");
             return;
         }
-        books.forEach(System.out::println);
+        books.forEach(book -> ui.println(book.toString()));
     }
 
     private void searchBooks() {
-        System.out.print("请输入书名关键字：");
-        String keyword = scanner.nextLine();
+        String keyword = ui.readLine("请输入书名关键字：");
         printBooks(library.searchBooksByTitle(keyword));
     }
 
     private void borrowBook(Reader reader) {
-        int bookId = readInt("请输入要借阅的图书编号：");
+        int bookId = ui.readInt("请输入要借阅的图书编号：");
         if (library.borrowBook(reader, bookId)) {
-            System.out.println("借阅成功！");
+            ui.println("借阅成功！");
         }
     }
 
     private void returnBook(Reader reader) {
-        int bookId = readInt("请输入要归还的图书编号：");
+        int bookId = ui.readInt("请输入要归还的图书编号：");
         if (library.returnBook(reader, bookId)) {
-            System.out.println("归还成功！");
+            ui.println("归还成功！");
         }
     }
 
     private void addBook() {
-        int id = readInt("请输入图书编号：");
-        System.out.print("请输入书名：");
-        String title = scanner.nextLine();
-        System.out.print("请输入作者：");
-        String author = scanner.nextLine();
-        System.out.print("请输入出版社：");
-        String publisher = scanner.nextLine();
-        int total = readInt("请输入总数量：");
-        Book book = new Book(id, title, author, publisher, total, total);
+        int id = ui.readInt("请输入图书编号：");
+        String title = ui.readLine("请输入书名：");
+        String author = ui.readLine("请输入作者：");
+        String publisher = ui.readLine("请输入出版社：");
+        String isbn = ui.readLine("请输入ISBN：");
+        String category = ui.readLine("请输入分类：");
+        int total = ui.readInt("请输入总数量：");
+        double deposit = Double.parseDouble(ui.readLine("请输入押金："));
+        Book book = new Book(id, title, author, publisher, isbn, category, null, 0, deposit, total, total, new java.util.ArrayList<>());
         if (library.addBook(book)) {
-            System.out.println("新增图书成功。");
+            ui.println("新增图书成功。");
         } else {
-            System.out.println("编号已存在，新增失败。");
+            ui.println("编号已存在，新增失败。");
         }
     }
 
     private void removeBook() {
-        int id = readInt("请输入要删除的图书编号：");
+        int id = ui.readInt("请输入要删除的图书编号：");
         if (library.removeBook(id)) {
-            System.out.println("删除成功。");
+            ui.println("删除成功。");
         } else {
-            System.out.println("未找到该编号的图书。");
+            ui.println("未找到该编号的图书。");
         }
     }
 
     private void updateBook() {
-        int id = readInt("请输入要修改的图书编号：");
+        int id = ui.readInt("请输入要修改的图书编号：");
         Book existing = library.findBookById(id);
         if (existing == null) {
-            System.out.println("未找到该编号的图书。");
+            ui.println("未找到该编号的图书。");
             return;
         }
-        System.out.println("当前信息：" + existing);
-        System.out.print("请输入新的书名（直接回车保持不变）：");
-        String title = scanner.nextLine();
+        ui.println("当前信息：" + existing);
+        String title = ui.readLine("请输入新的书名（直接回车保持不变）：");
         if (title.isEmpty()) {
             title = existing.getTitle();
         }
-        System.out.print("请输入新的作者（直接回车保持不变）：");
-        String author = scanner.nextLine();
+        String author = ui.readLine("请输入新的作者（直接回车保持不变）：");
         if (author.isEmpty()) {
             author = existing.getAuthor();
         }
-        System.out.print("请输入新的出版社（直接回车保持不变）：");
-        String publisher = scanner.nextLine();
+        String publisher = ui.readLine("请输入新的出版社（直接回车保持不变）：");
         if (publisher.isEmpty()) {
             publisher = existing.getPublisher();
         }
-        System.out.print("请输入新的总数量（直接回车保持不变）：");
-        String totalInput = scanner.nextLine();
+        String totalInput = ui.readLine("请输入新的总数量（直接回车保持不变）：");
         int total = existing.getTotalCount();
         if (!totalInput.isEmpty()) {
             try {
                 total = Integer.parseInt(totalInput);
             } catch (NumberFormatException e) {
-                System.out.println("总数量输入无效，保持原值。");
+                ui.println("总数量输入无效，保持原值。");
             }
         }
-        Book updated = new Book(id, title, author, publisher, total, existing.getAvailableCount());
+        Book updated = new Book(id, title, author, publisher, existing.getIsbn(), existing.getCategory(), existing.getPublishDate(), existing.getPages(), existing.getDeposit(), total, existing.getAvailableCount(), existing.getStatusHistory());
         if (library.updateBook(updated)) {
-            System.out.println("修改成功。");
+            ui.println("修改成功。");
         } else {
-            System.out.println("修改失败。");
+            ui.println("修改失败。");
         }
     }
 
-    private int readInt(String prompt) {
-        while (true) {
-            System.out.print(prompt);
-            String input = scanner.nextLine();
-            try {
-                return Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println("输入格式错误，请输入数字。");
+    private void readerRecharge(Reader reader) {
+        String amountStr = ui.readLine("请输入充值金额：");
+        try {
+            double amount = Double.parseDouble(amountStr);
+            reader.recharge(amount);
+            String buyVip = ui.readLine("是否花费50元购买VIP并提升借阅额度(Y/N)：");
+            if (buyVip.equalsIgnoreCase("Y")) {
+                reader.buyVip(50);
             }
+            library.saveAll();
+            ui.println("当前余额：" + reader.getBalance() + "，VIP状态：" + (reader.isVip() ? "是" : "否"));
+        } catch (NumberFormatException e) {
+            ui.println("充值失败，金额格式不正确。");
         }
     }
 }
