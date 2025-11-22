@@ -46,7 +46,7 @@ public class AdminRepository {
             List<String> lines = admins.stream()
                     .map(admin -> String.join(",",
                             String.valueOf(admin.getId()),
-                            admin.getUsername(),
+                            admin.getAccount(),
                             admin.getPassword(),
                             admin.getName()))
                     .toList();
