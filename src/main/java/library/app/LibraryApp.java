@@ -1,6 +1,6 @@
 package library.app;
 
-import library.app.ui.SwingConsole;
+import library.app.ui.ConsoleInterface;
 import library.app.ui.UserInterface;
 import library.model.Admin;
 import library.model.Book;
@@ -19,8 +19,8 @@ public class LibraryApp {
     }
 
     public static void main(String[] args) {
-        SwingConsole console = new SwingConsole();
-        new Thread(() -> new LibraryApp(console).run()).start();
+        UserInterface console = new ConsoleInterface();
+        new LibraryApp(console).run();
     }
 
     private void run() {
@@ -54,7 +54,7 @@ public class LibraryApp {
         String password = ui.readLine("请输入密码：");
         Reader reader = library.loginReader(username, password);
         if (reader != null) {
-            ui.println("欢迎你，" + reader.getName() + "！");
+            printReaderWelcome(reader);
             readerMenu(reader);
         } else {
             ui.println("用户名或密码错误。");
@@ -70,6 +70,19 @@ public class LibraryApp {
             adminMenu();
         } else {
             ui.println("用户名或密码错误。");
+        }
+    }
+
+    private void printReaderWelcome(Reader reader) {
+        if (reader.isVip()) {
+            ui.println("==============================");
+            ui.println(" 尊贵的会员 " + reader.getName() + "，欢迎回来！");
+            ui.println(" 您的专属借阅额度：" + reader.getBorrowMax());
+            ui.println(" 当前余额：" + reader.getBalance());
+            ui.println("==============================");
+        } else {
+            ui.println("欢迎你，" + reader.getName() + "！");
+            ui.println("升级为VIP可提升借阅额度并获得更多权益哦~");
         }
     }
 
